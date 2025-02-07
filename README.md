@@ -14,6 +14,11 @@ This repository contains MATLAB and Python scripts for the simulation and design
 - **CST-MATLAB interface** without the need for VBA scripts  
 - **Floquet functions** and mixed template results
 
+function resultCalculation(Frequency, MAG_A, MAG_B)
+    % Calculate expression and invert it
+    result = (MAG_A .* MAG_A) ./ ((MAG_A .* MAG_A) + (MAG_B .* MAG_B));
+    inverted_result = 1 - result; % Invert the result
+
 ![Screenshot 2025-01-22 201154](https://github.com/user-attachments/assets/ca1e82a5-56df-49ea-972f-4812fd9643ca)
 
   
