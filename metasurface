@@ -1,0 +1,217 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import context
+import cst_python_api as cpa
+import os
+
+
+projectName = "pixelated metasurface"
+
+# Create the CST project
+myCST = cpa.CST_MicrowaveStudio(context.dataFolder, projectName + ".cst")
+
+# Set the default units for the project
+myCST.Project.setUnits()
+
+# Parameters based on MATLAB code
+st = 0.8  # thickness of substrate
+ls = 5    # substrate length
+p = 0     # pixel thickness (assuming this is height for pixels)
+
+# Add FR4 material to the project
+myCST.Build.Material.addNormalMaterial(
+    "FR4 (Lossy)", 4.3, 1.0, colour=[0.94, 0.82, 0.76], tanD=0.025)
+
+# Create ground plane
+myCST.Build.Shape.addBrick(
+    xMin=-5/2, xMax=5/2,
+    yMin=-5/2, yMax=5/2,
+    zMin=0.0, zMax=-0.0,
+    name="Groundplane", component="component1", material="PEC"
+)
+
+# Create substrate
+myCST.Build.Shape.addBrick(
+    xMin=-5/2, xMax=5/2,
+    yMin=-5/2, yMax=5/2,
+    zMin=0.0, zMax=0.8,
+    name="Substrate", component="component1", material="FR4 (Lossy)"
+)
+
+# Create individual pixels (patch elements) with specific dimensions
+# Pixel 1
+myCST.Build.Shape.addBrick(
+    xMin=1.5, xMax=2.5,
+    yMin=1.5, yMax=2.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel1", component="component1", material="PEC"
+)
+
+# Pixel 2
+myCST.Build.Shape.addBrick(
+    xMin=-0.5, xMax=1.5,
+    yMin=1.5, yMax=2.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel2", component="component1", material="PEC"
+)
+
+# Pixel 3
+myCST.Build.Shape.addBrick(
+    xMin=-0.5, xMax=0.5,
+    yMin=1.5, yMax=2.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel3", component="component1", material="PEC"
+)
+
+# Pixel 4
+myCST.Build.Shape.addBrick(
+    xMin=-0.5, xMax=0.5,
+    yMin=0.5, yMax=1.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel4", component="component1", material="PEC"
+)
+
+# Pixel 5
+myCST.Build.Shape.addBrick(
+    xMin=-0.5, xMax=0.5,
+    yMin=-0.5, yMax=0.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel5", component="component1", material="PEC"
+)
+
+# Pixel 6
+myCST.Build.Shape.addBrick(
+    xMin=1.5, xMax=2.5,
+    yMin=-0.5, yMax=0.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel6", component="component1", material="PEC"
+)
+
+# Pixel 7
+myCST.Build.Shape.addBrick(
+    xMin=0.5, xMax=1.5,
+    yMin=-0.5, yMax=-1.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel7", component="component1", material="PEC"
+)
+
+# Pixel 8
+myCST.Build.Shape.addBrick(
+    xMin=-0.5, xMax=-1.5,
+    yMin=-1.5, yMax=-2.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel8", component="component1", material="PEC"
+)
+
+# Pixel 9
+myCST.Build.Shape.addBrick(
+    xMin=-1.5, xMax=-2.5,
+    yMin=0.5, yMax=1.5,
+    zMin=0.8, zMax=0.8 + 0.0,
+    name="Pixel9", component="component1", material="PEC"
+)
+
+myCST.Solver.setFrequencyRange(14.0, 16.0)
+
+# Set the bounding box limits
+myCST.Solver.setBackgroundLimits(
+    xMin = 0.0, xMax = 0.0,
+    yMin = 0.0, yMax = 0.0,
+    zMin = 0.0, zMax = 0.0,
+)
+
+# Set the boundary conditions
+myCST.Solver.setBoundaryCondition(
+    xMin = "unit cell", xMax = "unit cell",
+    yMin = "unit cell", yMax = "unit cell",
+    zMin = "expanded open", zMax = "expanded open",
+)
+
+myCST.Solver.changeSolverType("HF Frequency Domain")
+
+myCST.Solver.runSimulation()
+
+# #%%
+# # Retrieve the S-Parameters results
+# freq, SZMax1ZMax1 = myCST.Results.getSParameters(0,0,1,1)
+# _,    SZMax2ZMax1 = myCST.Results.getSParameters(0,0,2,1)
+# # _,    SMax1Min1 = myCST.Results.getSParameters(0,-1,1,1)
+# # _,    SMax2Min1 = myCST.Results.getSParameters(0,-1,2,1)
+# #%%
+# # PLOT THE S-PARAMETERS RESULTS
+# # Create a new figure
+# plt.figure(0)
+# # Plot the retrieved results
+# plt.plot(freq, 20*np.log10(np.abs(SZMax1ZMax1)), color="C0", label="ZMax1ZMax1")
+# plt.plot(freq, 20*np.log10(np.abs(SZMax2ZMax1)), color="C1", label="ZMax2ZMax1")
+# # plt.plot(freq, 20*np.log10(np.abs(SMax1Min1)), color="C2", label="Zmax(1),Zmin(1)")
+# # plt.plot(freq, 20*np.log10(np.abs(SMax2Min1)), color="C3", label="Zmax(2),Zmin(1)")
+# # Decorate the figure
+# plt.xlabel("Frequency (GHz)")
+# plt.ylabel("$|S_{ij}|$ (dB)")
+# plt.legend()
+# plt.grid()
+# plt.show()
+
+# Define the resultCalculation function before calling it
+def resultCalculation(Frequency, MAG_A, MAG_B):
+    # Calculate expression and invert it
+    result = (MAG_A * MAG_A) / ((MAG_A * MAG_A) + (MAG_B * MAG_B))
+    inverted_result = 1 - result  # Invert the result
+
+    # Plot the inverted result
+    plt.figure()
+    plt.plot(Frequency, inverted_result, linewidth=2)
+    plt.grid()
+    plt.title('Mixed Template results')
+    plt.xlabel('Frequency (GHz)')
+    plt.ylabel(' ')
+
+    # Set y-axis limits to be linear from 0 to 1
+    plt.ylim([0, 1])
+    plt.show()
+
+# Define export paths for S-parameters
+exportpathA = r'C:\Users\GOPAL\OneDrive\Documents\MATLAB\pixel2.txt'
+exportpathB = exportpathA.replace('.txt', '_set2.txt')
+
+# Retrieve the S-Parameters results
+freq, SZMax1ZMax1 = myCST.Results.getSParameters(0, 0, 1, 1)
+_, SZMax2ZMax1 = myCST.Results.getSParameters(0, 0, 2, 1)
+
+# Export S-parameters to files (assuming you have a function for this)
+def export_s_parameters(filepath, frequency, s_parameters):
+    with open(filepath, 'w') as f:
+        for freq_val, s_param in zip(frequency, s_parameters):
+            f.write(f"{freq_val}\t{20 * np.log10(np.abs(s_param))}\n")  # Convert to dB
+
+# Export S-parameters to files
+export_s_parameters(exportpathA, freq, SZMax1ZMax1)
+export_s_parameters(exportpathB, freq, SZMax2ZMax1)
+
+# Load and plot results from both files if they exist
+if os.path.isfile(exportpathA):
+    FrequencyA, SparameterA = np.loadtxt(exportpathA, unpack=True)
+
+    if os.path.isfile(exportpathB):
+        FrequencyB, SparameterB = np.loadtxt(exportpathB, unpack=True)
+
+        # Plot results from both files
+        plt.figure()
+        plt.plot(FrequencyA, SparameterA, '-', linewidth=2, label='SZmax(1), Zmax(1) (dB)')
+        plt.plot(FrequencyB, SparameterB, '--', linewidth=2, label='SZmax(2), Zmax(1) (dB)')
+        plt.grid()
+        plt.legend(loc='best')
+        plt.title('S Parameters')
+        plt.xlabel('Frequency (GHz)')
+        plt.ylabel('(dB)')
+
+        # Calculate and plot MAG(A) and MAG(B)
+        MAG_A = 10 ** (SparameterA / 20)  # Convert dB to magnitude for A
+        MAG_B = 10 ** (SparameterB / 20)  # Convert dB to magnitude for B
+
+        resultCalculation(FrequencyA, MAG_A, MAG_B)
+    else:
+        raise FileNotFoundError(f'The file {exportpathB} does not exist.')
+else:
+    raise FileNotFoundError(f'The file {exportpathA} does not exist.')
