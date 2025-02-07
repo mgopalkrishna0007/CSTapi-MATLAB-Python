@@ -1,0 +1,254 @@
+
+addpath(genpath('C:\Users\GOPAL\OneDrive\Documents\MATLAB\CSTMATLABAPImaster'))
+%  the above path is used in the below as well
+addpath('...\Home');
+addpath('...\Materials');
+addpath('...\Modeling');
+addpath('...\PostProcessing');
+addpath('...\Simulation');
+addpath('...\cst api');
+addpath('..\cstapitest');
+
+cst = actxserver('CSTStudio.application');
+mws = cst.invoke('NewMWS');
+
+CstDefaultUnits(mws)
+ComponentList = 'component1';
+
+CstFR4lossy(mws)
+
+st = 0.8; % thickness of substrate
+ls = 5; %substrate length
+p = 0; %pixel thickness
+
+Name = 'Substrate';
+component = 'component1';
+material = 'FR-4 (lossy)';
+Xrange = [-ls/2 ls/2];
+Yrange = [-ls/2 ls/2];
+Zrange = [0 st];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'ground';
+component = 'component1';
+material = 'PEC';
+Xrange = [-ls/2 ls/2];
+Yrange = [-ls/2 ls/2];
+Zrange = [0 -p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel1';
+component = 'component1';
+material = 'PEC';
+Xrange = [1.5 2.5];
+Yrange = [1.5 2.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel2';
+component = 'component1';
+material = 'PEC';
+Xrange = [0.5 1.5];
+Yrange = [1.5 2.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel3';
+component = 'component1';
+material = 'PEC';
+Xrange = [-0.5 0.5];
+Yrange = [1.5 2.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel4';
+component = 'component1';
+material = 'PEC';
+Xrange = [-0.5 0.5];
+Yrange = [0.5 1.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel5';
+component = 'component1';
+material = 'PEC';
+Xrange = [-0.5 0.5];
+Yrange = [-0.5 0.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel6';
+component = 'component1';
+material = 'PEC';
+Xrange = [1.5 2.5];
+Yrange = [-0.5 0.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel7';
+component = 'component1';
+material = 'PEC';
+Xrange = [0.5 1.5];
+Yrange = [-0.5 -1.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel8';
+component = 'component1';
+material = 'PEC';
+Xrange = [-0.5 -1.5];
+Yrange = [-1.5 -2.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+Name = 'pixel9';
+component = 'component1';
+material = 'PEC';
+Xrange = [-1.5 -2.5];
+Yrange = [0.5 1.5];
+Zrange = [st st+p];
+Cstbrick(mws, Name, component, material, Xrange, Yrange, Zrange)
+
+SetNormal = [0 0 1];
+SetOrigin = [0 0 0];
+SetUVector = [1 0 0];
+
+CstActivateLocalWCS(mws, SetNormal, SetOrigin, SetUVector, 0)
+
+CstDefineFrequencyRange(mws,13,17)
+CstMeshInitiator(mws)
+minfrequency = 13;
+
+% Defines the background material
+XminSpace = 0;
+XmaxSpace = 0;
+YminSpace = 0;
+YmaxSpace = 0;
+ZminSpace = 0;
+ZmaxSpace = 0;
+CstDefineBackroundMaterial(mws,XminSpace,XmaxSpace, YminSpace, YmaxSpace, ZminSpace, ZmaxSpace)
+
+% Creates the Zmin and Zmax under the ports in navigation tree
+Xmin = 'unit cell';
+Xmax = 'unit cell';
+Ymin = 'unit cell';
+Ymax = 'unit cell';
+Zmin = 'expanded open';
+Zmax = 'expanded open';
+CstDefineOpenBoundary(mws,minfrequency,Xmin,Xmax,Ymin,Ymax,Zmin,Zmax)
+
+% Call the defineFloquetModes function directly with the CST project object (mws)
+defineFloquetModes(mws, 2);
+
+CstSaveProject(mws) 
+% CstDefineTimedomainSolver(mws,-40)
+CstDefineFrequencydomainSolver(mws, 13, 17, 2);
+
+% % Define export path and file name
+% exportpath = 'C:\Users\GOPAL\OneDrive\Documents\MATLAB\pixel2.txt';
+% 
+% % Export S11 as a .txt file
+% CstExportSparametersTXT(mws, exportpath);
+% 
+% % Load and plot the exported S-parameters
+% if isfile(exportpath)
+%     [Frequency, Sparametter] = CstLoadSparametterTXT(exportpath);
+%     
+%     % Plot the results
+%     figure;
+%     plot(Frequency, Sparametter, '-', 'LineWidth', 2); 
+%     grid on; 
+%     legend('S11 (dB)', 'Location', 'Best');
+%     title('Patch Antenna at 2.45 GHz');
+%     xlabel('Frequency (GHz)');
+%     ylabel('S-Parameter (dB)');
+% else
+%     error('The file %s does not exist. Ensure export was successful.', exportpath);
+% end
+% Define export path and file name
+
+% exportpath = 'C:\Users\GOPAL\OneDrive\Documents\MATLAB\pixel2.txt';
+% 
+% % Export both sets of S-parameters as .txt files
+% CstExportSparametersTXT(mws, exportpath);
+% 
+% % Load and plot the exported S-parameters from both files
+% if isfile(exportpath)
+%     [Frequency1, Sparameter1] = CstLoadSparametterTXT(exportpath);
+%     
+%     % Load second set of S-parameters
+%     exportpath2 = strrep(exportpath, '.txt', '_set2.txt');
+%     if isfile(exportpath2)
+%         [Frequency2, Sparameter2] = CstLoadSparametterTXT(exportpath2);
+%         
+%         % Plot the results
+%         figure;
+%         plot(Frequency1, Sparameter1, '-', 'LineWidth', 2); 
+%         hold on;
+%         plot(Frequency2, Sparameter2, '--', 'LineWidth', 2); 
+%         grid on; 
+%         legend('SZmax(1),Zmax(1) (dB)', 'SZmax(2),Zmax(1) (dB)', 'Location', 'Best');
+%         title('S parameters');
+%         xlabel('Frequency (GHz)');
+%         ylabel('(dB)');
+%     else
+%         error('The file %s does not exist. Ensure second export was successful.', exportpath2);
+%     end
+% else
+%     error('The file %s does not exist. Ensure first export was successful.', exportpath);
+% end
+
+exportpathA = 'C:\Users\GOPAL\OneDrive\Documents\MATLAB\pixel2.txt';
+exportpathB = strrep(exportpathA,'.txt','_set2.txt');
+
+% Export both sets of S-parameters as .txt files
+CstExportSparametersTXT(mws, exportpathA);
+
+if isfile(exportpathA)
+    [FrequencyA,SparameterA] = CstLoadSparametterTXT(exportpathA);
+    
+    % Load second set of S-parameters (if applicable)
+    if isfile(exportpathB)
+        [FrequencyB,SparameterB] = CstLoadSparametterTXT(exportpathB);
+        
+        % Plot results from both files
+        figure;
+        plot(FrequencyA,SparameterA,'-', 'LineWidth', 2); 
+        hold on;
+        plot(FrequencyB,SparameterB,'--', 'LineWidth', 2); 
+        grid on; 
+        legend('SZmax(1),Zmax(1) (dB)', 'SZmax(2),Zmax(1) (dB)', 'Location', 'Best');
+        title('S parameters');
+        xlabel('Frequency (GHz)');
+        ylabel('(dB)');
+        
+        % Calculate and plot MAG(A) and MAG(B)
+        MAG_A = 10 .^ (SparameterA / 20); % Convert dB to magnitude for A
+        MAG_B = 10 .^ (SparameterB / 20); % Convert dB to magnitude for B
+        
+        resultCalculation(FrequencyA,MAG_A,MAG_B);
+    else
+        error('The file %s does not exist.', exportpathB);
+    end
+else
+    error('The file %s does not exist.', exportpathA);
+end
+
+function resultCalculation(Frequency, MAG_A, MAG_B)
+    % Calculate expression and invert it
+    result = (MAG_A .* MAG_A) ./ ((MAG_A .* MAG_A) + (MAG_B .* MAG_B));
+    inverted_result = 1 - result; % Invert the result
+    
+    % Plot the inverted result
+    figure;
+    plot(Frequency, inverted_result, 'LineWidth', 2);
+    grid on;
+    title('Inverted Calculated Result Against Frequency');
+    xlabel('Frequency (GHz)');
+    ylabel('Inverted Result');
+    
+    % Set y-axis limits to be linear from 0 to 1
+    ylim([0 1]);
+end
+
+
